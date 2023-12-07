@@ -4,9 +4,12 @@ Written by Ryan Aday
 Copyright @2023
 V2: 12/06/2023- Added Hughes transform matrix capability, revised relative to ECEF algorithm
 
-The Hughes transform matrix assumes a pure planar coordinate transformation. This approach is wrong.
+The Hughes transform matrix performs a coordinate transformation by rotating and translating the emplacement coordinate system into that of the globe model. 
+This approach is correct.
+
 The existing relative to ECEF algorithm converts the relative Cartesian coordinates into the relative latitude/longitude angles & altitude.
 This is then added to the radar latitude/longitude angles and the altitude to get the correct ECEF coordinates of a trajectory.
+This approach is wrong.
 '''
 
 # Import libraries
@@ -52,7 +55,6 @@ Conversion Functions ***DO NOT MODIFY
 '''
 
 # Uncomment for Hughes transform
-'''
 def Rz(z_angle):
     return numpy.array([\
     [math.cos(z_angle), math.sin(z_angle), 0],\
@@ -102,7 +104,6 @@ def resM(H, x, y, z):
 def angle(v1, v2):
     # Assumes v1 and v2 are both 1x3 vectors, outputs in rads
     return numpy.arccos(numpy.dot(v1, v2)/(numpy.linalg.norm(v1) * numpy.linalg.norm(v2)))
-'''
 
 def geodetic_to_geocentric(ellps, lat, lon, h):
     a, rf = ellps
@@ -136,22 +137,18 @@ Functions
 wgs84 = (6378137, 298.257223563)
 
 # ECEF Reference Vectors
-'''
 X_ECEF_ref = [1, 0, 0]
 Y_ECEF_ref = [0, 1, 0]
 Z_ECEF_ref = [0, 0, 1]
-'''
 
 # ECEF Conversion of emplacement location
 ECEF_X, ECEF_Y, ECEF_Z = geodetic_to_geocentric(wgs84, wgs84_lat, wgs84_lon, wgs_84_alt)
 radar_ECEF = [ECEF_X, ECEF_Y, ECEF_Z]
 
 # Derive H Transform Matrix
-'''
 x_angle = angle(radar_ECEF, X_ECEF_ref)
 y_angle = angle(radar_ECEF, Y_ECEF_ref)
 z_angle = angle(radar_ECEF, Z_ECEF_ref)
-'''
 
 # Set the time interval to be 0.1 seconds
 time_interval = 0.1 # seconds
@@ -192,17 +189,19 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     x = distance_from_radar * math.sin(start_angle_offset + angular_velocity * t) # km
     y = altitude # km
     z = distance_from_radar * math.cos(start_angle_offset + angular_velocity * t) # km
-
+    
+    # LLA solution
     '''
+    lat_sim, lon_sim, h_sim = relative_to_geodetic(wgs84, x, y, z)
+    x_ECEF, y_ECEF, z_ECEF = geodetic_to_geocentric(wgs84, wgs84_lat + lat_sim,\
+    wgs84_lon + lon_sim, wgs84_alt + h_sim)
+    '''
+    
+    # Hughes transform solution
     sol = resM(H, x, y, z)
     x_ECEF = sol[0]
     y_ECEF = sol[1]
     z_ECEF = sol[2]
-    '''
-    
-    lat_sim, lon_sim, h_sim = relative_to_geodetic(wgs84, x, y, z)
-    x_ECEF, y_ECEF, z_ECEF = geodetic_to_geocentric(wgs84, wgs84_lat + lat_sim,\
-    wgs84_lon + lon_sim, wgs84_alt + h_sim)
 
     '''
     #############################################################################################
@@ -224,7 +223,7 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     yaw_intervals.append(yaw) # degrees
     
 # Create a list of tuples
-trajectory_data = [(t, x, y, z, xE, yE, zE, p, R, lR, hR, y) for t, x, y, z, xE, yE, zE, p, R, lR, hR, y in \
+trajectory_data = [(t, x, y, z, xE, yE, zE, p, R, lR, hR, yw) for t, x, y, z, xE, yE, zE, p, R, lR, hR, yw in \
 x_ECEF_coordinates, y_ECEF_coordinates, z_ECEF_coordinates,\
 pitch_intervals, RCS_intervals, low_RCS_intervals, high_RCS_intervals, yaw_intervals)]
 
