@@ -44,9 +44,6 @@ end_time = 5000.0 # seconds
 
 # Extra Constants
 pitch = 0.0 # degrees, negative is down
-RCS = 10.0 # dB, for nominal frequency
-low_RCS = 10.0 # dB, for subnominal frequency
-high_RCS = 10.0 # dB, for supernominal frequency
 yaw = 0.0 # RCS degrees
 
 '''
@@ -118,12 +115,10 @@ def geodetic_to_geocentric(ellps, lat, lon, h):
     lat_rad = math.radians(lat)
     lon_rad = math.radians(lon)
     
-    #N = a / math.sqrt(1 - (1 - (1 - 1 / rf) ** 2) * (math.sin(lat_rad))**2)
     N = a / math.sqrt(1 - e**2*math.sin(lat_rad)**2)
     
     X = ((N + h) * math.cos(lat_rad) * math.cos(lon_rad))
     Y = ((N + h) * math.cos(lat_rad) * math.sin(lon_rad))    
-    #Z = ((1 - 1 / rf) ** 2 * N + h) * math.sin(lat_rad)
     Z = ((1 - e) ** 2 * N + h) * math.sin(lat_rad)
 
     return X, Y, Z
@@ -134,8 +129,6 @@ def ECEF_flat_to_geodetic(ellps, x, y, z):
     
     lat = math.degrees(math.pi/2 - r/R)
     lon = math.degrees(math.acos(z/r) * sign(x))
-    #lon = math.degrees(math.atan2(y, x))
-    #lat = math.degrees(math.atan2(p, z))
     h = y
     
     return lat, lon, h
@@ -212,9 +205,6 @@ x_ECEF_coordinates = []
 y_ECEF_coordinates = []
 z_ECEF_coordinates = []
 pitch_intervals = []
-RCS_intervals = []
-low_RCS_intervals = []
-high_RCS_intervals = []
 yaw_intervals = []
 
 # Calculate coordinates for each time interval
@@ -263,30 +253,24 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     y_ECEF_coordinates.append(y_ECEF) # meters
     z_ECEF_coordinates.append(z_ECEF) # meters
     pitch_intervals.append(pitch) # degrees
-    RCS_intervals.append(RCS) # dB
-    low_RCS_intervals.append(low_RCS) # dB
-    high_RCS_intervals.append(high_RCS) # dB
     yaw_intervals.append(yaw) # degrees
     
 # Create a list of tuples
-trajectory_data = [(t, x, y, z, xE, yE, zE, p, R, lR, hR, yw) for t, x, y, z, xE, yE, zE, p, R, lR, hR, yw in \
+trajectory_data = [(t, x, y, z, xE, yE, zE, p, yw) for t, x, y, z, xE, yE, zE, p, yw in \
 zip(t_intervals, x_coordinates, y_coordinates, z_coordinates,\
-x_ECEF_coordinates, y_ECEF_coordinates, z_ECEF_coordinates, pitch_intervals,\
-RCS_intervals, low_RCS_intervals, high_RCS_intervals, yaw_intervals)]
+x_ECEF_coordinates, y_ECEF_coordinates, z_ECEF_coordinates, pitch_intervals, yaw_intervals)]
 
 # Write the data to a .txt file
 with open(filename, 'w') as file:
     if (isGlobal):
         print("\nCreating ECEF trajectory.")
         for data_point in trajectory_data:
-            file.write("%s %s %s %s %s %s %s %s %s\n" % (format(data_point[0], '.1f'), format(data_point[4], '.6f'),\
-            format(data_point[5], '.6f'), format(data_point[6], '.6f'), format(data_point[7], '.4f'), format(data_point[8], '.4f'),\
-            format(data_point[9], '.6f'), format(data_point[10], '.6f'), format(data_point[11], '.6f')))
+            file.write("%s %s %s %s %s %s\n" % (format(data_point[0], '.1f'), format(data_point[4], '.6f'),\
+            format(data_point[5], '.6f'), format(data_point[6], '.6f'), format(data_point[7], '.4f'), format(data_point[8], '.4f')))
     else:
         print("\n Creating emplacement-relative trajectory.")
         for data_point in trajectory_data:
-            file.write("%s %s %s %s %s %s %s %s %s\n" % (format(data_point[0], '.1f'), format(data_point[1], '.6f'),\
-            format(data_point[2], '.6f'), format(data_point[3], '.6f'), format(data_point[7], '.4f'), format(data_point[8], '.4f'),\
-            format(data_point[9], '.6f'), format(data_point[10], '.6f'), format(data_point[11], '.6f')))
+            file.write("%s %s %s %s %s %s\n" % (format(data_point[0], '.1f'), format(data_point[1], '.6f'),\
+            format(data_point[2], '.6f'), format(data_point[3], '.6f'), format(data_point[7], '.4f'), format(data_point[8], '.4f')))
     file.write("%s\n" % (-1))
 print("Trajectory data saved to '%s'\n" % (filename))
