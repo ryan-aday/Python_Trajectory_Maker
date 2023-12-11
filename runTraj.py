@@ -34,7 +34,7 @@ wgs84_lon = -106.279 # degrees
 wgs84_alt = 1206.0 # meters
 
 # Target Constants
-distance_from_radar = 80000.0 # meters
+distance_from_emplacement = 80000.0 # meters
 search_sector_angle = 120.0 # degrees
 bearing_N = 0.0 # 6133.3 # mills (Note: 1 degree = 160/9 milla)
 speed = 210.0 # m/s
@@ -167,17 +167,17 @@ z_ECEF_ref = [0, 0, 1]
 '''
 
 # ECEF Conversion of emplacement location
-x_radar_ECEF, y_radar_ECEF, z_radar_ECEF = geodetic_to_geocentric(wgs84, wgs84_lat, wgs84_lon, wgs84_alt)
-radar_ECEF = [x_radar_ECEF, y_radar_ECEF, z_radar_ECEF]
+x_emplacement_ECEF, y_emplacement_ECEF, z_emplacement_ECEF = geodetic_to_geocentric(wgs84, wgs84_lat, wgs84_lon, wgs84_alt)
+emplacement_ECEF = [x_emplacement_ECEF, y_emplacement_ECEF, z_emplacement_ECEF]
 
 # Derive H Transform Matrix
 '''
-x_angle = angle(radar_ECEF, x_ECEF_ref)
-y_angle = angle(radar_ECEF, y_ECEF_ref)
-z_angle = angle(radar_ECEF, z_ECEF_ref)
+x_angle = angle(emplacement_ECEF, x_ECEF_ref)
+y_angle = angle(emplacement_ECEF, y_ECEF_ref)
+z_angle = angle(emplacement_ECEF, z_ECEF_ref)
 
 R = Rt(x_angle, y_angle, z_angle)
-Ht = H(R, x_radar_ECEF, y_radar_ECEF, z_radar_ECEF)
+Ht = H(R, x_emplacement_ECEF, y_emplacement_ECEF, z_emplacement_ECEF)
 '''
 
 # Set up flat XYZ references for the flat globe solution
@@ -216,9 +216,9 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     '''
     
     # Calculate X, Y, Z coordinates
-    x = distance_from_radar * math.sin(start_angle_offset + angular_velocity * t) # km
+    x = distance_from_emplacement * math.sin(start_angle_offset + angular_velocity * t) # km
     y = altitude # km
-    z = distance_from_radar * math.cos(start_angle_offset + angular_velocity * t) # km
+    z = distance_from_emplacement * math.cos(start_angle_offset + angular_velocity * t) # km
       
     # Hughes transform solution
     '''
