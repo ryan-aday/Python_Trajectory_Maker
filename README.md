@@ -1,6 +1,6 @@
 # Python_Trajectory_Maker
 Creates files based off of a trajectory moving about a fixed emplacement.
-Note: Currently, this script creates a trajectory circling the radar. You can modify the .py script to modify the trajectories for your own use. 
+Note: Currently, this script creates a trajectory circling the emplacement. You can modify the .py script to modify the trajectories for your own use. 
 
 # References
 [Unit Converter](https://www.unitconverters.net/angle/degree-to-mil.html)
