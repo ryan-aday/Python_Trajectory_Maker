@@ -23,7 +23,7 @@ numpy, math
 2. Scroll to the User Constant Inputs section. Input units are described in the adjacent comments. 
 ..* If the .trj will use a global WGS84 reference, set isGlobal to True. Otherwise, set isGlobal to False. 
 filename will be set to the character array you feed it.  
-...* I.e. 'traj_check.trj' will be the file name assigned to the output file. 
+   * I.e. 'traj_check.trj' will be the file name assigned to the output file. 
 ..* wgs84_lat, wgs84_lon, and wgs84_alt will be assigned to the latitude, longitude, and altitude in wgs-84 format. Please use standard wgs-84 units when assigning these values. 
 
 3. Target Constants are self-explanatory. 
