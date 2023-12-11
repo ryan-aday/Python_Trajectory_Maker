@@ -21,24 +21,24 @@ numpy, math
 1. Type gedit runTraj. 
 
 2. Scroll to the User Constant Inputs section. Input units are described in the adjacent comments. 
-..* If the .trj will use a global WGS84 reference, set isGlobal to True. Otherwise, set isGlobal to False. 
+  * If the .trj will use a global WGS84 reference, set isGlobal to True. Otherwise, set isGlobal to False. 
 filename will be set to the character array you feed it.  
-   * I.e. 'traj_check.trj' will be the file name assigned to the output file. 
-..* wgs84_lat, wgs84_lon, and wgs84_alt will be assigned to the latitude, longitude, and altitude in wgs-84 format. Please use standard wgs-84 units when assigning these values. 
+  * I.e. 'traj_check.trj' will be the file name assigned to the output file. 
+  * wgs84_lat, wgs84_lon, and wgs84_alt will be assigned to the latitude, longitude, and altitude in wgs-84 format. Please use standard wgs-84 units when assigning these values. 
 
 3. Target Constants are self-explanatory. 
-..* search_sector_angle is the full angle of the radar search sector, including the alternate search sector (typically 120 degrees) 
-..* bearing_N is the bearing of the radar relative to true north. 
-..* speed is the fixed average speed of the SRN. This may need to be modified if the speed is variable. 
-..* altitude is the average altitude of the SRN. This may need to be modified if the altitude is variable. 
-..* start_time and end_time are the start and end times of the scenario, respectively. 
+  * search_sector_angle is the full angle of the radar search sector, including the alternate search sector (typically 120 degrees) 
+  * bearing_N is the bearing of the radar relative to true north. 
+  * speed is the fixed average speed of the SRN. This may need to be modified if the speed is variable. 
+  * altitude is the average altitude of the SRN. This may need to be modified if the altitude is variable. 
+  * start_time and end_time are the start and end times of the scenario, respectively. 
 
 4. Extra Constants are also self explanatory. These populate columns 5-9 of the .trj file, and are currently configured to be static. 
-..* pitch and yaw are the pitch and yaw of the trajectory per instance, respectively. 
+  * pitch and yaw are the pitch and yaw of the trajectory per instance, respectively. 
 
 5. Scroll to the user defined X, Y, and Z trajectory characteristics settings. 
-..* Note that this is currently set up for a trajectory encircling a stationary radar at a fixed altitude. This can be modified. 
-..* X is the cross range, Y is the altitude, Z is the downrange. 
+  * Note that this is currently set up for a trajectory encircling a stationary radar at a fixed altitude. This can be modified. 
+  * X is the cross range, Y is the altitude, Z is the downrange. 
 
 6. Save the .py file and close it. 
 
