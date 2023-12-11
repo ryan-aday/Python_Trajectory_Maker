@@ -3,15 +3,11 @@ Creates files based off of a trajectory moving about a fixed emplacement.
 Note: Currently, this script creates a trajectory circling the radar. You can modify the .py script to modify the trajectories for your own use. 
 
 # References
--https://www.unitconverters.net/angle/degree-to-mil.html
-
--https://www.oc.nps.edu/oc2902w/coord/coordcvt.pdf
-
--https://x-lumin.com/wp-content/uploads/2020/09/Coordinate_Transforms.pdf
-
--https://www.johndcook.com/blog/2022/10/14/eccentricity-flatness-aspect/
-
--http://walter.bislins.ch/bloge/index.asp?page=Globe+and+Flat+Earth+Transformations+and+Mappings
+[Unit Converter](https://www.unitconverters.net/angle/degree-to-mil.html)
+[Eccentricity Calcs](https://www.johndcook.com/blog/2022/10/14/eccentricity-flatness-aspect/)
+[Geometric to Geodetic Relationships](https://www.oc.nps.edu/oc2902w/coord/coordcvt.pdf)
+[Coordinate Transforms](https://x-lumin.com/wp-content/uploads/2020/09/Coordinate_Transforms.pdf)
+[Geodetic, Geocentric, to Flat Earth Relationships](http://walter.bislins.ch/bloge/index.asp?page=Globe+and+Flat+Earth+Transformations+and+Mappings)
 
 # Libraries
 numpy, math
