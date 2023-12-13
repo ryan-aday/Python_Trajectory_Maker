@@ -2,15 +2,21 @@
 runTraj.py
 Written by Ryan Aday
 Copyright @2023
-V3: 12/11/2023- Added flat earth/LLA solver, commented out the Hughes matrix solver
+V4: 12/12/2023- Added ENU/ECEF solver, commented out the flat LLA solver
 
-The current algorithm first converts the emplacement location from geodetic/LLA into flat-earth XYZ coordinates. 
-The XYZ trajectory data is then added to the flat-earth XYZ coordinates, after which the sums are converted
+The current ENU/ECEF algorithm first converts the emplacement location from geodetic/LLA into ENU coordinates. 
+The XYZ trajectory data is then added to the ENU coordinates, after which the sums are converted
 into geodetic/LLA coordinates. These are converted to geocentric coordinates (WGS84 currently). 
 
 The Hughes transform matrix performs a coordinate transformation by rotating and translating the emplacement
 coordinate system into that of the globe model. 
 This approach is incorrect, as it assumes incorrectly that the earth's surface is flat as it plots trajectories.
+
+The LLA flat earth algorithm first converts the emplacement location from geodetic/LLA into flat-earth XYZ coordinates. 
+The XYZ trajectory data is then added to the flat-earth XYZ coordinates, after which the sums are converted
+into geodetic/LLA coordinates. These are converted to geocentric coordinates (WGS84 currently). 
+This approach is incorrect, as it assumes incorrectly that the x, y, and z changes are linear. They are not, 
+which is what the ENU solution resolves. 
 '''
 
 # Import libraries
@@ -51,26 +57,26 @@ yaw = 0.0 # RCS degrees
 Conversion Functions ***DO NOT MODIFY
 #############################################################################################
 '''
-'''
+
 ### Hughes transform functions ###
 def Rz(z_angle):
     return numpy.array([\
     [math.cos(z_angle), math.sin(z_angle), 0],\
     [-math.sin(z_angle), math.cos(z_angle), 0],\
     [0, 0, 1],])
-
+'''
 def Ry(y_angle):
     return numpy.array([\
-    [math.cos(y_angle), 0, math.sin(y_angle)],\
+    [math.cos(y_angle), 0, -math.sin(y_angle)],\
     [0, 1, 0],\
-    [-math.sin(y_angle), 0, math.cos(y_angle)],])
-    
+    [math.sin(y_angle), 0, math.cos(y_angle)],])
+'''    
 def Rx(x_angle):
     return numpy.array([\
     [1, 0, 0],\
-    [0, -math.cos(x_angle), -math.sin(x_angle)],\
-    [0, math.sin(x_angle), math.cos(x_angle)],])
-    
+    [0, math.cos(x_angle), math.sin(x_angle)],\
+    [0, -math.sin(x_angle), math.cos(x_angle)],])
+'''   
 def Rt(x_angle, y_angle, z_angle):
         return Rz(z_angle) * Ry(y_angle) * Rx(x_angle)
         
@@ -105,7 +111,8 @@ def angle(v1, v2):
     # Assumes v1 and v2 are both 1x3 vectors, outputs in rads
     return numpy.arccos(numpy.dot(v1, v2)/(numpy.linalg.norm(v1) * numpy.linalg.norm(v2)))
 '''
-
+### Flat LLA solution functions ###
+'''
 def geodetic_to_geocentric(ellps, lat, lon, h):
     a, rf = ellps
     
@@ -148,7 +155,40 @@ def geodetic_to_ECEF_flat(ellps, lat, lon, h):
     
 def sign(x):
     return 1.0 if x>= 0 else -1.0
-    
+'''
+
+### ENU solution functions ###
+def geodetic_to_ENU(ellps, lat, lon, x, y, z):
+    lat_rad = math.radians(lat)
+    lon_rad = math.radians(lon)
+
+    R1 = Rx(math.pi/2 - lat_rad)
+    R3 = Rz(math.pi/2 + lon_rad)
+    xyz = numpy.array([x, y, z])
+    ENU = numpy.dot(numpy.dot(R1, R3), xyz)
+
+    easting = ENU[0]
+    northing = ENU[1]
+    up = ENU[2]
+
+    return easting, northing, up
+
+def ENU_to_geodetic(ellps, lat, lon, easting, northing, up):
+    lat_rad = math.radians(lat)    
+    lon_rad = math.radians(lon)
+
+    R1 = Rx(-(math.pi/2 - lat_rad))
+    R3 = Rz(-(math.pi/2 + lon_rad))
+    ENU = numpy.array([x, y, z])
+    ENU = numpy.dot(numpy.dot(R1, R3), xyz)
+    xyz = numpy.dot(numpy.dot(R3, R1), ENU)
+
+    x = xyz[0]
+    y = xyz[1]
+    z = xyz[2]
+
+    return x, y, z
+
 '''
 #############################################################################################
 Functions
@@ -181,7 +221,10 @@ Ht = H(R, x_emplacement_ECEF, y_emplacement_ECEF, z_emplacement_ECEF)
 '''
 
 # Set up flat XYZ references for the flat globe solution
-x_flat_ref, y_flat_ref, z_flat_ref = geodetic_to_ECEF_flat(wgs84, wgs84_lat, wgs84_lon, wgs84_alt)
+# x_flat_ref, y_flat_ref, z_flat_ref = geodetic_to_ECEF_flat(wgs84, wgs84_lat, wgs84_lon, wgs84_alt)
+
+# Set up ENU references for the ENU/ECEF solution
+easting_ref, northing_ref, up_ref = geodetic_to_ENU(wgs84, wgs84_lat, wgs84_lon, wgs84_alt, x_emplacement_ECEF, y_emplacement_ECEF, z_emplacement_ECEF)
 
 # Set the time interval to be 0.1 seconds
 time_interval = 0.1 # seconds
@@ -219,7 +262,13 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     x = distance_from_emplacement * math.sin(start_angle_offset + angular_velocity * t) # km
     y = altitude # km
     z = distance_from_emplacement * math.cos(start_angle_offset + angular_velocity * t) # km
-      
+          
+    '''
+    #############################################################################################
+    End of user-defined X, Y, Z trajectory characteristics
+    #############################################################################################
+    '''   
+
     # Hughes transform solution
     '''
     #sol = resM(Ht, x_ECEF, y_ECEF, z_ECEF)
@@ -230,19 +279,18 @@ for t in numpy.arange(start_time, end_time + time_interval, time_interval):
     z_ECEF = sol[2]
     '''
     
-    '''
-    #############################################################################################
-    End of user-defined X, Y, Z trajectory characteristics
-    #############################################################################################
-    '''   
-
     # Convert to ECEF using the flat LLA solution
+    '''
     x_flat = x + x_flat_ref
     y_flat = y + y_flat_ref    
     z_flat = z + z_flat_ref
 
     lat, lon, h = ECEF_flat_to_geodetic(wgs84, x_flat, y_flat, z_flat)
     x_ECEF, y_ECEF, z_ECEF = geodetic_to_geocentric(wgs84, lat, lon, h)
+    '''
+
+    # Convert to ECEF using the ENU solution
+    x_ECEF, y_ECEF, z_ECEF = ENU_to_geocentric(wgs84, wgs84_lat, wgs84_lon, easting_ref + x, northing_ref + z, up_ref + y)
     
     # Store data in arrays
     t_intervals.append(t) # seconds
